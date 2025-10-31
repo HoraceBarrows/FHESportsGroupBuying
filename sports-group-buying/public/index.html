@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Sports Group Buying Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"
+            onerror="this.onerror=null; this.src='https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js';">
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .wallet-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.5);
+            background: linear-gradient(45deg, #2980b9, #3498db);
+        }
+
+        .button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .success-button {
+            background: linear-gradient(45deg, #27ae60, #2ecc71);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4);
+        }
+
+        .warning-button {
+            background: linear-gradient(45deg, #e67e22, #f39c12);
+            box-shadow: 0 4px 15px rgba(230, 126, 34, 0.4);
+        }
+
+        .tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            color: #555;
+        }
+
+        .tab.active {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+            background: white;
+            color: #333;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .product-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 1px solid #e0e0e0;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            border-color: #3498db;
+        }
+
+        .product-category {
+            display: inline-block;
+            padding: 4px 12px;
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .product-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .product-info {
+            margin-bottom: 15px;
+        }
+
+        .product-info div {
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .price {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-target-reached {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .privacy-notice {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 30px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .privacy-notice h3 {
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #e57373;
+        }
+
+        .success-message {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #66bb6a;
+        }
+
+        .info-message {
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #42a5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏃‍♂️ Anonymous Sports Group Buying Platform</h1>
+            <p class="subtitle">Based on FHE homomorphic encryption technology, protect your privacy and enjoy group buying discounts</p>
+
+            <div class="wallet-section">
+                <div id="loadingIndicator" style="color: #3498db; margin-bottom: 10px;">
+                    Loading libraries... <span class="loading"></span>
+                </div>
+                <button id="connectWallet" class="button" style="display: none;">Connect Wallet</button>
+                <span id="walletStatus" class="hidden">
+                    Wallet Address: <strong id="walletAddress"></strong>
+                </span>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('browse')">Browse Products</button>
+            <button class="tab" onclick="showTab('create')">Create Product</button>
+            <button class="tab" onclick="showTab('orders')">My Orders</button>
+        </div>
+
+        <div id="browse" class="tab-content active">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>🛍️ Browse Sports Products</h2>
+                <button class="button" onclick="loadProducts()" style="padding: 8px 16px; font-size: 14px;">
+                    🔄 Refresh
+                </button>
+            </div>
+            <div id="productsGrid" class="products-grid">
+                <!-- Products will be loaded dynamically -->
+            </div>
+        </div>
+
+        <div id="create" class="tab-content">
+            <h2>📦 Create Group Buying Product</h2>
+            <form id="createProductForm">
+                <div class="form-group">
+                    <label>Product Name</label>
+                    <input type="text" id="productName" required placeholder="e.g.: Professional Basketball Shoes">
+                </div>
+
+                <div class="form-group">
+                    <label>Product Description</label>
+                    <textarea id="productDescription" rows="3" placeholder="Detailed description of product features and specifications"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Product Category</label>
+                    <select id="productCategory" required>
+                        <option value="">Select Category</option>
+                        <option value="0">Footwear</option>
+                        <option value="1">Clothing</option>
+                        <option value="2">Equipment</option>
+                        <option value="3">Accessories</option>
+                        <option value="4">Fitness</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Unit Price (ETH)</label>
+                    <input type="number" id="unitPrice" step="0.001" required placeholder="0.01">
+                </div>
+
+                <div class="form-group">
+                    <label>Minimum Order Quantity</label>
+                    <input type="number" id="minQuantity" required placeholder="10">
+                </div>
+
+                <div class="form-group">
+                    <label>Maximum Order Quantity</label>
+                    <input type="number" id="maxQuantity" required placeholder="100">
+                </div>
+
+                <div class="form-group">
+                    <label>Group Buying Deadline</label>
+                    <input type="datetime-local" id="deadline" required>
+                </div>
+
+                <button type="submit" class="button" id="createProductBtn">Create Group Buying Product</button>
+            </form>
+        </div>
+
+        <div id="orders" class="tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>📋 My Orders</h2>
+                <button class="button" onclick="loadMyOrders()" style="padding: 8px 16px; font-size: 14px;">
+                    🔄 Refresh
+                </button>
+            </div>
+            <div id="ordersList">
+                <!-- Orders will be loaded dynamically -->
+            </div>
+        </div>
+
+        <div class="privacy-notice">
+            <h3>🔐 Privacy Protection Notice</h3>
+            <p>This platform uses Zama FHE homomorphic encryption technology. Your purchase quantity and amount information is completely encrypted and stored on the blockchain. Only you can decrypt and view it. Merchants and other users cannot obtain your specific purchase information, truly achieving anonymous group buying.</p>
+        </div>
+    </div>
+
+    <script>
+        let web3Provider, signer, contract;
+        let fhevm;
+
+        // Contract configuration - replace with actual deployed contract
+        const contractAddress = "0xe434D59a1Cc2084672D4929dB9E3b8Af83f01431"; // Replace with actual deployed address
+        const contractABI = [
+            {
+                "inputs": [
+                    {"internalType": "string", "name": "_name", "type": "string"},
+                    {"internalType": "string", "name": "_description", "type": "string"},
+                    {"internalType": "uint256", "name": "_unitPrice", "type": "uint256"},
+                    {"internalType": "uint256", "name": "_minOrderQuantity", "type": "uint256"},
+                    {"internalType": "uint256", "name": "_maxOrderQuantity", "type": "uint256"},
+                    {"internalType": "uint8", "name": "_category", "type": "uint8"},
+                    {"internalType": "uint256", "name": "_deadline", "type": "uint256"}
+                ],
+                "name": "createProduct",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "uint256", "name": "productId", "type": "uint256"},
+                    {"internalType": "uint32", "name": "quantity", "type": "uint32"}
+                ],
+                "name": "placeOrder",
+                "outputs": [],
+                "stateMutability": "payable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "productId", "type": "uint256"}],
+                "name": "getProductInfo",
+                "outputs": [
+                    {"internalType": "string", "name": "name", "type": "string"},
+                    {"internalType": "string", "name": "description", "type": "string"},
+                    {"internalType": "uint256", "name": "unitPrice", "type": "uint256"},
+                    {"internalType": "uint256", "name": "minOrderQuantity", "type": "uint256"},
+                    {"internalType": "uint256", "name": "maxOrderQuantity", "type": "uint256"},
+                    {"internalType": "uint8", "name": "category", "type": "uint8"},
+                    {"internalType": "uint256", "name": "deadline", "type": "uint256"},
+                    {"internalType": "bool", "name": "active", "type": "bool"},
+                    {"internalType": "uint256", "name": "currentOrders", "type": "uint256"},
+                    {"internalType": "uint256", "name": "totalCollected", "type": "uint256"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "productId", "type": "uint256"}],
+                "name": "getAnonymousStats",
+                "outputs": [
+                    {"internalType": "uint256", "name": "totalParticipants", "type": "uint256"},
+                    {"internalType": "bool", "name": "targetReached", "type": "bool"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "orderId", "type": "uint256"}],
+                "name": "getOrderInfo",
+                "outputs": [
+                    {"internalType": "uint256", "name": "productId", "type": "uint256"},
+                    {"internalType": "address", "name": "buyer", "type": "address"},
+                    {"internalType": "uint256", "name": "timestamp", "type": "uint256"},
+                    {"internalType": "uint8", "name": "status", "type": "uint8"},
+                    {"internalType": "bool", "name": "isRevealed", "type": "bool"},
+                    {"internalType": "uint32", "name": "revealedQuantity", "type": "uint32"},
+                    {"internalType": "uint64", "name": "revealedAmount", "type": "uint64"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "uint256", "name": "orderId", "type": "uint256"}],
+                "name": "cancelOrder",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "uint256", "name": "productId", "type": "uint256"},
+                    {"indexed": false, "internalType": "string", "name": "name", "type": "string"},
+                    {"indexed": false, "internalType": "uint8", "name": "category", "type": "uint8"}
+                ],
+                "name": "ProductCreated",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "uint256", "name": "orderId", "type": "uint256"},
+                    {"indexed": true, "internalType": "uint256", "name": "productId", "type": "uint256"},
+                    {"indexed": true, "internalType": "address", "name": "buyer", "type": "address"}
+                ],
+                "name": "OrderPlaced",
+                "type": "event"
+            }
+        ];
+
+        const categoryNames = ["Footwear", "Clothing", "Equipment", "Accessories", "Fitness"];
+        const statusNames = ["Pending", "Collecting", "Processing", "Completed", "Cancelled"];
+
+        // Connect wallet function
+        async function connectWallet() {
+            // Check if ethers is loaded
+            if (typeof ethers === 'undefined') {
+                showMessage('Ethers library not loaded. Please refresh the page.', 'error');
+                return;
+            }
+
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    showMessage('Connecting to MetaMask...', 'info');
+
+                    const accounts = await window.ethereum.request({
+                        method: 'eth_requestAccounts'
+                    });
+
+                    // Check if we're on Sepolia testnet
+                    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                    if (chainId !== '0xaa36a7') { // Sepolia chainId
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_switchEthereumChain',
+                                params: [{ chainId: '0xaa36a7' }],
+                            });
+                        } catch (switchError) {
+                            if (switchError.code === 4902) {
+                                try {
+                                    await window.ethereum.request({
+                                        method: 'wallet_addEthereumChain',
+                                        params: [{
+                                            chainId: '0xaa36a7',
+                                            chainName: 'Sepolia Test Network',
+                                            rpcUrls: ['https://sepolia.infura.io/v3/'],
+                                            nativeCurrency: {
+                                                name: 'ETH',
+                                                symbol: 'ETH',
+                                                decimals: 18
+                                            },
+                                            blockExplorerUrls: ['https://sepolia.etherscan.io/']
+                                        }]
+                                    });
+                                } catch (addError) {
+                                    showMessage('Failed to add Sepolia network', 'error');
+                                    return;
+                                }
+                            } else {
+                                showMessage('Please switch to Sepolia testnet', 'error');
+                                return;
+                            }
+                        }
+                    }
+
+                    web3Provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = web3Provider.getSigner();
+
+                    // Initialize FHEVM (optional - for future FHE features)
+                    if (typeof window.fhevm !== 'undefined') {
+                        try {
+                            fhevm = await window.fhevm.createInstance({
+                                chainId: 11155111, // Sepolia testnet
+                                publicKey: await getFHEVMPublicKey()
+                            });
+                            console.log('FHEVM initialized successfully');
+                        } catch (error) {
+                            console.log('FHEVM not available, using standard encryption');
+                        }
+                    }
+
+                    document.getElementById('connectWallet').style.display = 'none';
+                    document.getElementById('walletStatus').classList.remove('hidden');
+                    document.getElementById('walletAddress').textContent =
+                        accounts[0].substring(0, 6) + '...' + accounts[0].substring(38);
+
+                    // Initialize contract
+                    contract = new ethers.Contract(contractAddress, contractABI, signer);
+
+                    console.log('Wallet connected successfully');
+                    showMessage('Connected to Sepolia! ✓', 'success');
+
+                    // Load products after wallet connection
+                    showMessage('Loading products...', 'info');
+                    await loadProducts();
+                    await loadMyOrders();
+                    showMessage('Ready to use!', 'success');
+
+                } catch (error) {
+                    console.error('Failed to connect wallet:', error);
+                    showMessage('Failed to connect wallet: ' + error.message, 'error');
+                }
+            } else {
+                showMessage('Please install MetaMask wallet', 'error');
+            }
+        }
+
+        // Get FHEVM public key (placeholder - replace with actual implementation)
+        async function getFHEVMPublicKey() {
+            // This should fetch the actual public key from Zama network
+            return ""; // Placeholder
+        }
+
+        // Switch tabs function
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // Remove active state from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Activate selected tab
+            event.target.classList.add('active');
+
+            // Load data for specific tabs
+            if (tabName === 'browse') {
+                loadProducts();
+            } else if (tabName === 'orders') {
+                loadMyOrders();
+            }
+        }
+
+        // Place order function
+        async function placeOrder(productId) {
+            if (!contract) {
+                showMessage('Please connect wallet first', 'error');
+                return;
+            }
+
+            try {
+                const quantityInput = document.getElementById(`quantity-${productId}`);
+                const quantity = parseInt(quantityInput.value);
+
+                if (!quantity || quantity <= 0) {
+                    showMessage('Please enter a valid purchase quantity', 'error');
+                    return;
+                }
+
+                showMessage('Processing order...', 'info');
+
+                // Get product information
+                const productInfo = await contract.getProductInfo(productId);
+                const unitPriceEth = ethers.utils.formatEther(productInfo.unitPrice);
+                const totalAmount = ethers.utils.parseEther((parseFloat(unitPriceEth) * quantity).toString());
+
+                console.log('Placing order:', { productId, quantity, totalAmount: totalAmount.toString() });
+
+                // Call contract to place order
+                const tx = await contract.placeOrder(productId, quantity, {
+                    value: totalAmount,
+                    gasLimit: 800000
+                });
+
+                showMessage('Order submitted, waiting for confirmation...', 'info');
+                const receipt = await tx.wait();
+                console.log('Order confirmed:', receipt);
+
+                showMessage('Order submitted successfully! Your purchase information has been encrypted and stored.', 'success');
+                quantityInput.value = '';
+
+                // Update interface data
+                setTimeout(() => loadProducts(), 2000);
+                setTimeout(() => loadMyOrders(), 2000);
+
+            } catch (error) {
+                console.error('Failed to place order:', error);
+                showMessage('Failed to place order: ' + (error.reason || error.message), 'error');
+            }
+        }
+
+        // Create product function
+        async function createProduct() {
+            if (!contract) {
+                showMessage('Please connect wallet first', 'error');
+                return;
+            }
+
+            try {
+                const name = document.getElementById('productName').value;
+                const description = document.getElementById('productDescription').value;
+                const category = parseInt(document.getElementById('productCategory').value);
+                const unitPriceValue = document.getElementById('unitPrice').value;
+                const minQuantity = parseInt(document.getElementById('minQuantity').value);
+                const maxQuantity = parseInt(document.getElementById('maxQuantity').value);
+                const deadlineValue = document.getElementById('deadline').value;
+
+                // Validate inputs
+                if (!name || !category || !unitPriceValue || !minQuantity || !maxQuantity || !deadlineValue) {
+                    showMessage('Please fill in all required fields', 'error');
+                    return;
+                }
+
+                const unitPrice = ethers.utils.parseEther(unitPriceValue);
+                const deadline = Math.floor(new Date(deadlineValue).getTime() / 1000);
+
+                showMessage('Creating product...', 'info');
+
+                const tx = await contract.createProduct(
+                    name, description || "", unitPrice, minQuantity, maxQuantity, category, deadline,
+                    { gasLimit: 500000 }
+                );
+
+                showMessage('Product being created, waiting for confirmation...', 'info');
+                await tx.wait();
+
+                showMessage('Group buying product created successfully!', 'success');
+                document.getElementById('createProductForm').reset();
+
+                // Refresh product list
+                setTimeout(() => loadProducts(), 2000);
+
+            } catch (error) {
+                console.error('Failed to create product:', error);
+                showMessage('Failed to create product: ' + (error.reason || error.message), 'error');
+            }
+        }
+
+        // Load products list
+        async function loadProducts() {
+            if (!contract) return;
+
+            try {
+                const productsGrid = document.getElementById('productsGrid');
+                productsGrid.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Loading products...</p>';
+
+                let productsFound = 0;
+                const productCards = [];
+
+                // Try to load products by checking product IDs 1-20
+                for (let i = 1; i <= 20; i++) {
+                    try {
+                        const productInfo = await contract.getProductInfo(i);
+                        if (productInfo.name && productInfo.active) {
+                            const productCard = createProductCard(i, productInfo);
+                            productCards.push(productCard);
+                            productsFound++;
+                        }
+                    } catch (error) {
+                        // Product doesn't exist, continue to next
+                        continue;
+                    }
+                }
+
+                productsGrid.innerHTML = '';
+
+                if (productsFound === 0) {
+                    productsGrid.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No active products found. Create the first product!</p>';
+                } else {
+                    productCards.forEach(card => productsGrid.appendChild(card));
+                    console.log(`Loaded ${productsFound} products`);
+                }
+
+            } catch (error) {
+                console.error('Failed to load products:', error);
+                document.getElementById('productsGrid').innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 40px;">Failed to load products. Please try again.</p>';
+            }
+        }
+
+        // Create product card
+        function createProductCard(productId, productInfo) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+
+            const deadline = new Date(productInfo.deadline * 1000);
+            const now = new Date();
+            const isExpired = deadline < now;
+
+            card.innerHTML = `
+                <div class="product-category">${categoryNames[productInfo.category] || 'Unknown'}</div>
+                <div class="product-title">${productInfo.name}</div>
+                <div class="product-info">
+                    <div class="price">${ethers.utils.formatEther(productInfo.unitPrice)} ETH / unit</div>
+                    <div>Min quantity: ${productInfo.minOrderQuantity}</div>
+                    <div>Max quantity: ${productInfo.maxOrderQuantity}</div>
+                    <div>Current orders: ${productInfo.currentOrders}</div>
+                    <div>Deadline: ${deadline.toLocaleDateString()}</div>
+                    <div style="margin-top: 10px; color: #666;">${productInfo.description}</div>
+                </div>
+                <div style="margin-top: 15px;">
+                    ${!isExpired ? `
+                        <input type="number" id="quantity-${productId}" placeholder="Quantity" min="1" max="${productInfo.maxOrderQuantity}" style="width: 100px; margin-right: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <button class="button" onclick="placeOrder(${productId})">Join Group Buy</button>
+                    ` : '<button class="button" disabled>Expired</button>'}
+                    <span class="status-indicator ${productInfo.currentOrders >= productInfo.minOrderQuantity ? 'status-target-reached' : 'status-active'}">
+                        ${productInfo.currentOrders >= productInfo.minOrderQuantity ? 'Target Reached' : 'Active'}
+                    </span>
+                </div>
+            `;
+
+            return card;
+        }
+
+        // Load my orders
+        async function loadMyOrders() {
+            if (!contract || !signer) return;
+
+            try {
+                const userAddress = await signer.getAddress();
+                const ordersList = document.getElementById('ordersList');
+                ordersList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Loading your orders...</p>';
+
+                let ordersFound = 0;
+                const orderCards = [];
+
+                // Try to load orders by checking order IDs 1-100
+                for (let i = 1; i <= 100; i++) {
+                    try {
+                        const orderInfo = await contract.getOrderInfo(i);
+                        if (orderInfo.buyer.toLowerCase() === userAddress.toLowerCase()) {
+                            const orderCard = await createOrderCard(i, orderInfo);
+                            orderCards.push(orderCard);
+                            ordersFound++;
+                        }
+                    } catch (error) {
+                        // Order doesn't exist, continue
+                        continue;
+                    }
+                }
+
+                ordersList.innerHTML = '';
+
+                if (ordersFound === 0) {
+                    ordersList.innerHTML = '<p style="text-align: center; color: #666; padding: 40px;">No orders found. Place your first order!</p>';
+                } else {
+                    orderCards.forEach(card => ordersList.appendChild(card));
+                    console.log(`Loaded ${ordersFound} orders`);
+                }
+
+            } catch (error) {
+                console.error('Failed to load orders:', error);
+                document.getElementById('ordersList').innerHTML = '<p style="text-align: center; color: #e74c3c; padding: 40px;">Failed to load orders. Please try again.</p>';
+            }
+        }
+
+        // Create order card
+        async function createOrderCard(orderId, orderInfo) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+
+            try {
+                const productInfo = await contract.getProductInfo(orderInfo.productId);
+                const orderDate = new Date(orderInfo.timestamp * 1000);
+
+                card.innerHTML = `
+                    <div class="product-title">Order #${orderId} - ${productInfo.name}</div>
+                    <div class="product-info">
+                        <div>Product ID: ${orderInfo.productId}</div>
+                        <div>Quantity: ${orderInfo.isRevealed ? orderInfo.revealedQuantity : 'Encrypted 🔐'}</div>
+                        <div>Amount: ${orderInfo.isRevealed ? ethers.utils.formatEther(orderInfo.revealedAmount) + ' ETH' : 'Encrypted 🔐'}</div>
+                        <div>Status: ${statusNames[orderInfo.status] || 'Unknown'}</div>
+                        <div>Order Date: ${orderDate.toLocaleDateString()} ${orderDate.toLocaleTimeString()}</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        ${!orderInfo.isRevealed && orderInfo.status === 2 ? `
+                            <button class="button warning-button" onclick="revealOrder(${orderId})">Reveal Details</button>
+                        ` : ''}
+                        ${orderInfo.status === 0 ? `
+                            <button class="button" onclick="cancelOrder(${orderId})" style="margin-left: 10px;">Cancel Order</button>
+                        ` : ''}
+                    </div>
+                `;
+            } catch (error) {
+                card.innerHTML = `
+                    <div class="product-title">Order #${orderId}</div>
+                    <div class="product-info">
+                        <div>Status: ${statusNames[orderInfo.status] || 'Unknown'}</div>
+                        <div>Order Date: ${new Date(orderInfo.timestamp * 1000).toLocaleDateString()}</div>
+                        <div style="color: #e74c3c;">Error loading product details</div>
+                    </div>
+                `;
+            }
+
+            return card;
+        }
+
+        // Reveal order (placeholder - requires actual FHE implementation)
+        async function revealOrder(orderId) {
+            if (!contract) return;
+
+            try {
+                showMessage('Revealing order details...', 'info');
+
+                // This would require actual FHE decryption implementation
+                // For now, show a placeholder message
+                showMessage('Order reveal functionality requires FHE implementation', 'info');
+
+            } catch (error) {
+                console.error('Failed to reveal order:', error);
+                showMessage('Failed to reveal order: ' + error.message, 'error');
+            }
+        }
+
+        // Cancel order
+        async function cancelOrder(orderId) {
+            if (!contract) return;
+
+            try {
+                showMessage('Cancelling order...', 'info');
+
+                const tx = await contract.cancelOrder(orderId, { gasLimit: 200000 });
+                await tx.wait();
+
+                showMessage('Order cancelled successfully!', 'success');
+                await loadMyOrders();
+
+            } catch (error) {
+                console.error('Failed to cancel order:', error);
+                showMessage('Failed to cancel order: ' + error.message, 'error');
+            }
+        }
+
+        // Update product statistics (removed - not in current ABI)
+        async function updateProductStats(productId) {
+            // This function is no longer needed
+            return;
+        }
+
+        // Show message function
+        function showMessage(message, type = 'info') {
+            // Remove existing messages
+            const existingMessages = document.querySelectorAll('.error-message, .success-message, .info-message');
+            existingMessages.forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 300);
+            });
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${type}-message`;
+            messageDiv.textContent = message;
+            messageDiv.style.opacity = '0';
+            messageDiv.style.transition = 'opacity 0.3s ease';
+
+            const container = document.querySelector('.container');
+            container.insertBefore(messageDiv, container.firstChild);
+
+            // Fade in
+            setTimeout(() => messageDiv.style.opacity = '1', 10);
+
+            // Auto dismiss after 5 seconds
+            const timeout = type === 'error' ? 8000 : 5000;
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.style.opacity = '0';
+                    setTimeout(() => messageDiv.remove(), 300);
+                }
+            }, timeout);
+        }
+
+        // Event listeners
+        document.getElementById('connectWallet').addEventListener('click', connectWallet);
+        document.getElementById('createProductForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            createProduct();
+        });
+
+        // Check if ethers is loaded
+        function checkEthersLoaded() {
+            if (typeof ethers !== 'undefined') {
+                console.log('Ethers.js v' + ethers.version + ' loaded successfully');
+                return true;
+            }
+            console.error('Ethers.js failed to load');
+            return false;
+        }
+
+        // Page load initialization
+        window.addEventListener('load', function() {
+            console.log('Anonymous Sports Group Buying Platform loaded');
+
+            // Set default deadline (24 hours from now)
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('deadline').value = tomorrow.toISOString().slice(0, 16);
+
+            // Wait for ethers to load
+            let attempts = 0;
+            const maxAttempts = 10;
+
+            const checkEthers = setInterval(() => {
+                attempts++;
+
+                if (checkEthersLoaded()) {
+                    clearInterval(checkEthers);
+
+                    // Hide loading indicator and show connect button
+                    document.getElementById('loadingIndicator').style.display = 'none';
+                    document.getElementById('connectWallet').style.display = 'inline-block';
+
+                    // Check if wallet is already connected
+                    if (typeof window.ethereum !== 'undefined') {
+                        window.ethereum.request({ method: 'eth_accounts' })
+                            .then(accounts => {
+                                if (accounts.length > 0) {
+                                    connectWallet();
+                                }
+                            })
+                            .catch(err => console.error('Error checking accounts:', err));
+                    }
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(checkEthers);
+                    console.error('Failed to load ethers.js after ' + maxAttempts + ' attempts');
+                    document.getElementById('loadingIndicator').innerHTML =
+                        '<span style="color: #e74c3c;">Failed to load. Please <a href="javascript:location.reload()">refresh the page</a>.</span>';
+                    showMessage('Failed to load required libraries. Please refresh the page.', 'error');
+                }
+            }, 200);
+        });
+
+        // Listen for account changes
+        if (typeof window.ethereum !== 'undefined') {
+            window.ethereum.on('accountsChanged', function (accounts) {
+                if (accounts.length === 0) {
+                    // User disconnected wallet
+                    showMessage('Wallet disconnected', 'info');
+                    document.getElementById('connectWallet').style.display = 'block';
+                    document.getElementById('walletStatus').classList.add('hidden');
+                    contract = null;
+                    signer = null;
+                    web3Provider = null;
+                } else {
+                    // User switched accounts
+                    showMessage('Account changed, reconnecting...', 'info');
+                    setTimeout(() => connectWallet(), 100);
+                }
+            });
+
+            window.ethereum.on('chainChanged', function (chainId) {
+                // Reload page when chain changes
+                showMessage('Network changed, reloading...', 'info');
+                setTimeout(() => window.location.reload(), 500);
+            });
+        }
+    </script>
+</body>
+</html>

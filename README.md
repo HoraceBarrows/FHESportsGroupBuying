@@ -12,20 +12,53 @@ A privacy-preserving sports equipment group purchasing platform powered by Zama'
 - **GitHub Repository**: [https://github.com/HoraceBarrows/FHESportsGroupBuying](https://github.com/HoraceBarrows/FHESportsGroupBuying)
 - **Smart Contract**: [View on Sepolia Etherscan](https://sepolia.etherscan.io/address/0xe434D59a1Cc2084672D4929dB9E3b8Af83f01431)
 
+## 🆕 What's New - Full React Frontend!
+
+The Anonymous Sports Group Buying Platform has been upgraded with a **complete Next.js 14 + React frontend**!
+
+### New Features:
+- ✨ **Modern React UI**: Built with Next.js 14 App Router and React 18
+- 🎨 **Tailwind CSS Styling**: Beautiful, responsive design
+- 🔐 **RainbowKit Integration**: Professional wallet connection experience
+- ⚡ **Real-time Updates**: Automatic refresh of products and orders
+- 🛡️ **Full TypeScript**: Type-safe throughout the entire stack
+- 🔒 **Deep FHE Integration**: Custom hooks for seamless encryption operations
+- 📱 **Mobile Responsive**: Works perfectly on all devices
+- 🎯 **Improved UX**: Loading states, error handling, and toast notifications
+
+### Quick Start:
+```bash
+cd sports-group-buying
+npm install
+npm run dev
+```
+Visit `http://localhost:3001` and connect your MetaMask wallet!
+
 ## 📹 Demo Video
 
 A complete demonstration video (`demo.mp4`) is included in this repository. **Please download the file to view it** as the video cannot be played directly in the browser.
 
 The demo showcases:
-- Product creation and browsing
-- Encrypted order placement
-- Privacy-preserving statistics
+- **NEW**: Modern React UI and wallet connection
+- Product creation and browsing with real-time updates
+- Encrypted order placement with FHE SDK
+- Privacy-preserving statistics visualization
 - Order reveal functionality
-- Complete user workflow
+- Complete user workflow from start to finish
 
 ## 🎯 Overview
 
-This decentralized application enables users to participate in group buying of sports equipment while maintaining complete privacy of their purchase quantities and amounts. Built with FHE technology, all sensitive transaction data is encrypted on-chain, ensuring that neither merchants nor other buyers can access individual purchase information.
+This **full-stack decentralized application** enables users to participate in group buying of sports equipment while maintaining complete privacy of their purchase quantities and amounts. Built with FHE technology, all sensitive transaction data is encrypted on-chain, ensuring that neither merchants nor other buyers can access individual purchase information.
+
+**🆕 Now with Modern React Frontend!**
+
+The platform features a complete Next.js 14 application with:
+- 🎨 **Modern UI**: Tailwind CSS with responsive design
+- 🔐 **Wallet Integration**: RainbowKit for seamless wallet connection
+- ⚡ **Real-time Updates**: React Query for efficient data fetching
+- 🛡️ **Type Safety**: Full TypeScript implementation
+- 🔒 **FHE Integration**: Deep integration with @fhevm/sdk for encryption operations
+- 📱 **Mobile Responsive**: Works on all devices
 
 ## 🔐 Core Concepts
 
@@ -94,6 +127,76 @@ System knows: Total = 350 items ✓ (computed on encrypted data)
 - **For Businesses**: Competitive protection of procurement strategies
 - **For Retailers**: GDPR-compliant privacy-preserving commerce
 
+## 🎨 Frontend Architecture
+
+### Component Structure
+
+The React frontend is built with a modern, modular architecture:
+
+#### Core Components
+- **Header.tsx**: Application header with RainbowKit wallet connection button
+- **ProductBrowser.tsx**: Browse products with real-time updates and filtering
+- **ProductCard.tsx**: Individual product display with encrypted order placement
+- **ProductCreator.tsx**: Form for creating new group buying campaigns
+- **OrdersList.tsx**: User's order history with status tracking
+- **PrivacyNotice.tsx**: Privacy information and FHE explanation
+
+#### Custom Hooks
+- **useContract()**: Manages contract instance and signer setup
+  - Automatically connects to deployed contract
+  - Handles provider and signer management
+  - Type-safe contract interactions
+
+- **useFHEVM()**: Manages FHEVM SDK instance
+  - Initializes FHE encryption on Sepolia
+  - Provides encrypt/decrypt methods
+  - Handles gateway URL configuration
+  - Returns ready state and error handling
+
+#### Utility Libraries
+- **wagmi.ts**: Wagmi configuration for Sepolia testnet
+- **types.ts**: TypeScript interfaces (Product, Order, etc.)
+- **toast.ts**: User notification system
+- **contractABI.ts**: Contract ABI and deployed address
+
+#### State Management
+- **React Context**: Global FHEVM instance via providers
+- **React Query**: Server state and caching
+- **Local State**: Component-level UI state with useState
+- **Wagmi Hooks**: Wallet and blockchain state
+
+### User Flow
+
+```
+1. Connect Wallet (RainbowKit)
+   ↓
+2. FHEVM SDK Initialization (Sepolia)
+   ↓
+3. Browse Products / Create Product
+   ↓
+4. Place Order with FHE Encryption
+   ↓
+5. View Encrypted Orders
+   ↓
+6. Optional: Reveal Order Details
+```
+
+### Key Features
+
+#### Encryption on Order Placement
+When a user places an order:
+1. Input quantity (e.g., 5 items)
+2. `useFHEVM` hook encrypts: `fhevm.encrypt32(quantity)`
+3. Encrypted data sent to smart contract
+4. User pays total amount (quantity × unit price)
+5. Order stored with encrypted quantity on-chain
+
+#### Privacy Guarantees
+- ✅ Individual quantities never exposed in plaintext
+- ✅ Only aggregate statistics visible (total orders count)
+- ✅ User can decrypt their own orders only
+- ✅ Merchants see totals but not individual amounts
+
 ## 🏗️ Smart Contract Architecture
 
 ### Contract Information
@@ -130,30 +233,95 @@ Create Product → Place Orders → Reach Target → Process → Selective Revea
 
 ## 🛠️ Technology Stack
 
+### Frontend Layer (New!)
+- **Framework**: Next.js 14.1.0 with App Router
+- **UI Library**: React 18.2.0
+- **Language**: TypeScript 5.3.0
+- **Styling**: Tailwind CSS 3.4.0 + PostCSS + Autoprefixer
+- **Wallet Integration**:
+  - Wagmi 2.5.0 for Ethereum interactions
+  - RainbowKit 2.0.0 for wallet connection UI
+- **State Management**: @tanstack/react-query 5.0.0
+- **FHE SDK**: @fhevm/sdk (workspace package)
+
 ### Blockchain Layer
 - **Network**: Ethereum Sepolia Testnet
 - **Development Framework**: Hardhat v2.22.0
 - **Smart Contracts**: Solidity 0.8.24
 - **Encryption**: Zama FHEVM v0.5.0
+- **Hardhat Plugins**:
+  - @nomicfoundation/hardhat-toolbox 5.0.0
+  - @nomicfoundation/hardhat-ethers 3.0.0
 
 ### Privacy Layer
 - **Encryption**: Zama fhEVM (Fully Homomorphic Encryption)
+- **FHE Library**: @fhevm/solidity 0.5.0
 - **Encrypted Types**: euint32, euint64, ebool
 - **Key Management**: On-chain FHE public keys
 - **Decryption**: EIP-712 signature-based selective revelation
+- **Client SDK**: @fhevm/sdk with React hooks
+
+### Web3 Integration
+- **Ethereum Library**: Ethers.js v6.11.0
+- **Wallet Connection**: RainbowKit + Wagmi
+- **Provider Management**: React Context + Custom Hooks
+- **Contract Interaction**: Type-safe contract bindings
 
 ### Development Tools
 - **Testing**: Mocha + Chai + Hardhat Toolbox
 - **Verification**: Hardhat Verify Plugin
-- **Web3 Library**: Ethers.js v6.11.0
 - **Gas Optimization**: Solidity optimizer (800 runs)
+- **Frontend Dev Server**: Next.js Fast Refresh
+- **Build System**: Next.js with Webpack 5
 
 ### Security & Quality
-- **Linting**: Solhint for Solidity, ESLint for JavaScript
+- **Linting**:
+  - Solhint for Solidity
+  - ESLint for JavaScript/TypeScript
+  - Next.js built-in linting
 - **Formatting**: Prettier with Solidity plugin
 - **Pre-commit Hooks**: Husky + lint-staged
 - **CI/CD**: GitHub Actions with multiple Node.js versions
 - **Coverage**: 95%+ test coverage
+- **Type Safety**: Full TypeScript with strict mode
+
+## 📁 Project Structure
+
+The platform now includes both smart contracts and a modern React frontend:
+
+```
+sports-group-buying/
+├── app/                          # Next.js 14 App Router
+│   ├── components/               # React components
+│   │   ├── Header.tsx            # Wallet connection header
+│   │   ├── ProductBrowser.tsx    # Browse products
+│   │   ├── ProductCard.tsx       # Product card with FHE encryption
+│   │   ├── ProductCreator.tsx    # Create products form
+│   │   ├── OrdersList.tsx        # User orders display
+│   │   └── PrivacyNotice.tsx     # Privacy info
+│   ├── layout.tsx                # Root layout with providers
+│   ├── page.tsx                  # Main page
+│   ├── providers.tsx             # Wagmi/RainbowKit providers
+│   └── globals.css               # Tailwind CSS styles
+├── hooks/                        # Custom React hooks
+│   ├── useContract.ts            # Contract interaction
+│   └── useFHEVM.ts               # FHEVM SDK integration
+├── lib/                          # Utility libraries
+│   ├── wagmi.ts                  # Wagmi config for Sepolia
+│   ├── types.ts                  # TypeScript interfaces
+│   ├── toast.ts                  # Notification system
+│   └── contractABI.ts            # Contract ABI & address
+├── contracts/                    # Solidity smart contracts
+│   └── AnonymousSportsGroupBuying.sol
+├── scripts/                      # Deployment scripts
+│   └── deploy.js
+├── test/                         # Contract tests
+├── public/                       # Static assets
+├── next.config.js                # Next.js configuration
+├── tsconfig.json                 # TypeScript config
+├── hardhat.config.js             # Hardhat config
+└── package.json                  # Dependencies
+```
 
 ## 🚀 Getting Started
 
@@ -161,7 +329,7 @@ Create Product → Place Orders → Reach Target → Process → Selective Revea
 
 - Node.js v18 or higher
 - npm v9 or higher
-- MetaMask wallet
+- MetaMask wallet browser extension
 - Sepolia testnet ETH ([Get from faucet](https://sepoliafaucet.com/))
 - Infura or Alchemy account (for RPC access)
 - Etherscan API key (for contract verification)
@@ -253,7 +421,46 @@ npm run verify
 
 This makes the source code publicly viewable and enables direct interaction through Etherscan's interface.
 
-### Interaction & Simulation
+### Running the Frontend Application
+
+**Option 1: Using the sports-group-buying directory (Recommended)**
+
+```bash
+cd sports-group-buying
+npm install
+npm run dev
+```
+
+The application will start at `http://localhost:3001`
+
+**Features:**
+- 🎨 Modern React UI with Tailwind CSS
+- 🔐 Wallet connection via RainbowKit
+- 📦 Browse and create products
+- 🛒 Place encrypted orders with FHE
+- 📊 View your order history
+- 🔒 Privacy-preserving interface
+
+**Frontend Configuration:**
+
+Edit `lib/wagmi.ts` to set your WalletConnect project ID:
+```typescript
+projectId: 'YOUR_PROJECT_ID', // Get from https://cloud.walletconnect.com
+```
+
+Edit `lib/contractABI.ts` to update the contract address if needed:
+```typescript
+export const CONTRACT_ADDRESS = '0xe434D59a1Cc2084672D4929dB9E3b8Af83f01431';
+```
+
+**Building for Production:**
+```bash
+cd sports-group-buying
+npm run build
+npm run start
+```
+
+### Interaction & Simulation (Smart Contracts)
 
 **Basic interaction:**
 ```bash
@@ -439,6 +646,8 @@ function emergencyWithdraw() external
 
 ## 📚 Available Scripts
 
+### Smart Contract Scripts (Root Directory)
+
 | Command | Description |
 |---------|-------------|
 | `npm run compile` | Compile smart contracts |
@@ -455,6 +664,17 @@ function emergencyWithdraw() external
 | `npm run format` | Format all code |
 | `npm run security:check` | Run security audit |
 | `npm run validate` | Full validation (lint + test) |
+
+### Frontend Scripts (sports-group-buying directory)
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start Next.js dev server on port 3001 |
+| `npm run build` | Build Next.js production bundle |
+| `npm run start` | Start production server on port 3001 |
+| `npm run lint` | Lint Next.js and TypeScript files |
+| `npm run compile` | Compile smart contracts (Hardhat) |
+| `npm run deploy` | Deploy contracts to Sepolia |
 
 ## 📖 Documentation
 
@@ -585,6 +805,73 @@ ebool isEnough = FHE.gte(total, minimum);  // Boolean result from encrypted data
 - Strategy protected
 - GDPR compliance enhanced
 
+## 🎯 Frontend Implementation Details
+
+### Migration from Static HTML to React
+
+The platform has been completely rewritten from a static HTML interface to a modern React application:
+
+#### Before (Static HTML):
+- Single HTML file with inline JavaScript
+- Direct ethers.js integration
+- Manual DOM manipulation
+- Limited state management
+- Basic styling with inline CSS
+
+#### After (Next.js + React):
+- **Component-based architecture** with reusable React components
+- **Custom React hooks** for contract and FHE operations
+- **Provider pattern** for global state (Wagmi + React Query)
+- **Type-safe** with full TypeScript implementation
+- **Modern styling** with Tailwind CSS utility classes
+- **Optimized builds** with Next.js and Webpack 5
+
+### Technical Highlights
+
+#### Custom Hook: `useFHEVM()`
+```typescript
+const { instance, isInitializing, error, isReady } = useFHEVM();
+
+// Automatically initializes FHEVM on Sepolia
+// Returns FHE instance for encryption operations
+// Handles loading and error states
+```
+
+#### Custom Hook: `useContract()`
+```typescript
+const { contract, address } = useContract();
+
+// Automatically creates contract instance
+// Connects to wallet signer
+// Type-safe contract calls
+```
+
+#### Component Example: ProductCard
+```typescript
+// Encrypts order quantity before submitting
+const encryptedQuantity = await fhevm.encrypt32(quantity);
+await contract.placeOrder(productId, encryptedQuantity, {
+  value: totalAmount,
+  gasLimit: 800000,
+});
+```
+
+### Performance Optimizations
+
+- **React Query Caching**: Reduces redundant blockchain queries
+- **Lazy Loading**: Components load on-demand
+- **Memoization**: Prevents unnecessary re-renders
+- **Next.js Optimization**: Automatic code splitting and tree shaking
+- **Fast Refresh**: Instant feedback during development
+
+### Security Features
+
+- **Environment Variables**: Sensitive data in .env files
+- **Type Safety**: TypeScript catches errors at compile time
+- **Input Validation**: Client-side validation before blockchain submission
+- **Error Boundaries**: Graceful error handling
+- **Wallet Security**: RainbowKit best practices
+
 ## 🔮 Future Enhancements
 
 ### Planned Features
@@ -593,6 +880,9 @@ ebool isEnough = FHE.gte(total, minimum);  // Boolean result from encrypted data
 - **Cross-chain Support**: Expand to other EVM-compatible chains with FHE
 - **Layer 2 Integration**: Deploy on L2 for reduced gas costs
 - **Mobile App**: Native iOS/Android with WalletConnect
+- **Advanced Filtering**: Search and filter products by category and price
+- **Order History Export**: Download encrypted order data
+- **Multi-language Support**: Internationalization (i18n)
 
 ### Research Directions
 - **Advanced ZK Integration**: Combine FHE with zero-knowledge proofs
