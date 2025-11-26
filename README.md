@@ -1,10 +1,43 @@
-# Anonymous Sports Group Buying Platform
+# Anonymous Sports Group Buying Platform (Enhanced)
 
-A privacy-preserving sports equipment group purchasing platform powered by Zama's Fully Homomorphic Encryption (FHE) technology on Ethereum Sepolia testnet.
+A production-ready privacy-preserving sports equipment group purchasing platform powered by Zama's Fully Homomorphic Encryption (FHE) technology on Ethereum Sepolia testnet.
+
+**Latest Version**: Enhanced with Refund Mechanism, Timeout Protection, Gateway Callback Pattern, and Comprehensive Security Features
 
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.24-blue.svg)](https://soliditylang.org/)
 [![Hardhat](https://img.shields.io/badge/Hardhat-2.22.0-yellow.svg)](https://hardhat.org/)
+[![FHE](https://img.shields.io/badge/FHE-Zama-purple.svg)](https://www.zama.ai/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
+## 🎯 What's New - Enhanced Features
+
+This version includes critical improvements for production use:
+
+### ✨ **Refund Mechanism**
+- Automatic refund handling for decryption failures
+- Pull-pattern refund system (secure against reentrancy)
+- Fallback pending refund mechanism
+- Full audit logging of all refund operations
+
+### ⏱️ **Timeout Protection**
+- Prevents permanent order locks with 30-day maximum order timeout
+- 7-day decryption request timeout
+- Automatic timeout tracking and enforcement
+- Failed decryption recovery mechanism
+
+### 🔄 **Gateway Callback Pattern**
+- Asynchronous decryption via Zama Gateway
+- Request → Gateway → Callback flow
+- Proper request tracking and cleanup
+- Timeout safeguards during callback phase
+
+### 🛡️ **Enhanced Security**
+- **Input Validation**: Comprehensive parameter checking
+- **Access Control**: Role-based modifiers (owner, merchant, buyer)
+- **Overflow Protection**: Safe arithmetic with limits
+- **Audit Logging**: All critical operations logged
+- **Reentrancy Prevention**: Checks-Effects-Interactions pattern
+- **Safe Transfer**: `call` pattern instead of `transfer`
 
 ## 🌐 Live Demo
 
@@ -534,20 +567,84 @@ The simulation creates multiple products and orders, demonstrating the complete 
 - **Emergency Pause**: Circuit breaker for critical issues
 - **Fail-Safe Defaults**: Conservative security posture
 
-## 📝 Smart Contract Functions
+## 🏗️ Enhanced Architecture Overview
+
+### Security & Reliability Features
+
+#### 1. **Refund Mechanism**
+```
+Order Lifecycle with Refund Protection:
+┌─ PENDING ─┐
+│           ├─ Cancel (Refund) ─┐
+│           ├─ Process (PROCESSING) ─┐
+└─ Request Decryption ──────────┐  │
+                                 │  │
+                    ┌─ SUCCESS ──┘  │
+                    │               │
+        COMPLETED ◄─┴─ CALLBACK ─┐  │
+                                 │  │
+                    FAILED ◄─ TIMEOUT HANDLER
+                      │              │
+                      └─── REFUNDED ◄┘
+```
+
+- **Automatic Refund**: Failed decryption triggers immediate refund
+- **Pull Pattern**: Safe refund mechanism prevents reentrancy attacks
+- **Fallback Mechanism**: If direct transfer fails, funds accumulate in `pendingRefunds`
+- **Audit Trail**: All refund operations logged via `AuditLog` event
+
+#### 2. **Timeout Protection**
+- **Order Timeout**: 30 days maximum (prevents permanent locks)
+- **Decryption Timeout**: 7 days for Gateway response
+- **Automatic Enforcement**: Timeouts checked at every step
+- **Recovery Function**: `handleDecryptionFailure()` processes expired requests
+
+#### 3. **Gateway Callback Pattern**
+```
+User Request Flow:
+User → placeOrder() → Encrypted Storage
+User → requestOrderDecryption() → Gateway Request
+Gateway → processOrderDecryptionCallback() → Order Completed
+       \→ handleDecryptionFailure() → Order Refunded (on timeout)
+```
+
+#### 4. **Input Validation & Access Control**
+- **String Validation**: Name length 1-256, description max 1000
+- **Quantity Validation**: 0-10000 per order, 0-100000 total
+- **Price Protection**: Overflow checks prevent large amounts
+- **Role-Based Access**: Owner, Merchant, Buyer roles with specific permissions
+- **Zero-Address Checks**: All address inputs validated
+
+#### 5. **Overflow & Arithmetic Safety**
+- **Safe Multiplication**: `_unitPrice × _maxOrderQuantity` checked
+- **Amount Caps**: Individual orders limited to prevent overflow
+- **Consistent Checks**: All arithmetic operations bounded
+
+#### 6. **Audit Logging**
+```solidity
+// Every critical operation logged:
+emit AuditLog(
+    string indexed action,        // "CREATE_PRODUCT", "PLACE_ORDER", etc.
+    address indexed actor,        // who performed the action
+    uint256 indexed itemId,       // affected item (order/product ID)
+    string details                // additional context
+);
+```
+
+## 📝 Smart Contract Functions (Enhanced API)
 
 ### Product Management
 
 ```solidity
-// Create a new group buying product
+// Create a new group buying product with validation
 function createProduct(
     string memory name,
     string memory description,
     uint256 unitPrice,
     uint256 minOrderQuantity,  // Group target
-    uint256 maxOrderQuantity,
+    uint256 maxOrderQuantity,  // Per-buyer limit
     ProductCategory category,
-    uint256 deadline
+    uint256 deadline           // Max 30 days from now
 ) external returns (uint256 productId)
 
 // Deactivate a product (merchant only)
@@ -569,20 +666,35 @@ function getProductInfo(uint256 productId)
     )
 ```
 
-### Order Management
+### Order Management (Enhanced)
 
 ```solidity
-// Place an encrypted order (payable)
+// Place an encrypted order with full validation
+// Encrypts quantity on-chain, stores encrypted amount
 function placeOrder(uint256 productId, uint32 quantity)
     external payable
 
-// Cancel a pending order (refunds payment)
+// Cancel pending order with automatic refund
+// Refund via call pattern (safe against reentrancy)
 function cancelOrder(uint256 orderId) external
 
-// Reveal encrypted order details (owner only)
-function revealOrder(uint256 orderId) external
+// Request decryption via Gateway callback pattern
+// Initiates async decryption process with timeout protection
+function requestOrderDecryption(uint256 orderId) external
 
-// Get order information
+// Gateway callback - receives decrypted values and completes order
+// Validates decryption proof and timeout
+function processOrderDecryptionCallback(
+    uint256 requestId,
+    uint32 quantity,
+    uint64 amount,
+    bytes memory decryptionProof
+) external
+
+// Handle decryption failure - process refund after timeout
+function handleDecryptionFailure(uint256 orderId) external onlyOwner
+
+// Get order information with decryption status
 function getOrderInfo(uint256 orderId)
     external view returns (
         uint256 productId,
@@ -591,8 +703,32 @@ function getOrderInfo(uint256 orderId)
         OrderStatus status,
         bool isRevealed,
         uint32 revealedQuantity,
-        uint64 revealedAmount
+        uint64 revealedAmount,
+        DecryptionStatus decryptionStatus,
+        uint256 decryptionTimeout
     )
+
+// Get decryption status of an order
+function getDecryptionStatus(uint256 orderId)
+    external view returns (DecryptionStatus status, uint256 timeout, uint256 requestId)
+
+// Check if decryption has timed out
+function isDecryptionTimeout(uint256 orderId)
+    external view returns (bool)
+```
+
+### Refund Management (New)
+
+```solidity
+// Claim pending refund if direct transfer failed (pull pattern)
+function claimPendingRefund() external
+
+// View pending refund amount for an address
+function getPendingRefund(address user)
+    external view returns (uint256)
+
+// Internal refund processing with safe transfer
+function _processRefund(address recipient, uint256 amount) internal
 ```
 
 ### Group Order Processing
@@ -890,25 +1026,158 @@ await contract.placeOrder(productId, encryptedQuantity, {
 - **Confidential Supply Chain**: End-to-end encrypted logistics
 - **Private Analytics**: Aggregate insights without individual data exposure
 
+## 📚 Developer Guide
+
+### Understanding the Enhanced Features
+
+#### Refund Mechanism Deep Dive
+```javascript
+// User cancels order - automatic refund
+const tx1 = await contract.cancelOrder(orderId);
+// Event: RefundProcessed(buyer, amount)
+
+// Order fails to decrypt after timeout
+// Owner triggers recovery
+const tx2 = await contract.handleDecryptionFailure(orderId);
+// Refund stored in pendingRefunds[buyer]
+
+// If direct transfer failed, user can claim
+const tx3 = await contract.claimPendingRefund();
+// Funds transferred to user's wallet
+```
+
+#### Timeout Protection Workflow
+```javascript
+// Order created with automatic timeout
+const order = await contract.orders(orderId);
+console.log(order.decryptionTimeout); // block.timestamp + 30 days
+
+// Check if timeout exceeded
+const isTimeout = await contract.isDecryptionTimeout(orderId);
+
+// If timeout exceeded and no callback, recovery possible
+if (isTimeout) {
+    await contract.handleDecryptionFailure(orderId);
+}
+```
+
+#### Gateway Callback Pattern Flow
+```javascript
+// Step 1: Request decryption (async)
+const tx1 = await contract.requestOrderDecryption(orderId);
+// Event: DecryptionRequested(orderId, requestId, timeout)
+
+// Step 2: Gateway decrypts and calls callback
+// (happens off-chain via Zama Gateway)
+// Event: DecryptionCompleted(orderId, requestId)
+
+// Step 3: Order completed with revealed values
+const order = await contract.getOrderInfo(orderId);
+console.log(order.revealedQuantity); // Now visible
+```
+
+### Security Best Practices
+
+1. **Input Validation**
+   - All string inputs checked for length
+   - Quantities bounded to prevent overflow
+   - Prices checked against maximum safe arithmetic
+
+2. **Access Control**
+   - Use modifiers for role checking
+   - Owner-only functions protected
+   - Merchant verification per product
+
+3. **Reentrancy Prevention**
+   - State cleared before external calls
+   - `call` pattern used instead of `transfer`
+   - Pull pattern for refunds
+
+4. **Audit Trail**
+   - All operations logged via `AuditLog` event
+   - Indexed fields enable efficient filtering
+   - Off-chain systems can track all changes
+
+### Gas Optimization Considerations
+
+The enhanced contract includes several optimizations:
+
+- **Selective Decryption**: Only decrypt when needed
+- **Bounded Arrays**: Product orders limited to prevent OOG
+- **Efficient State**: Minimal storage overhead
+- **Homomorphic Operations**: Aggregate without decryption
+
+### Testing Enhanced Features
+
+```bash
+# Test all features
+npm run test
+
+# Test specific features
+npx hardhat test --grep "Refund"
+npx hardhat test --grep "Timeout"
+npx hardhat test --grep "Callback"
+npx hardhat test --grep "Validation"
+```
+
+### Monitoring & Operations
+
+**Key Events to Monitor**:
+- `OrderPlaced`: New order created
+- `DecryptionRequested`: Async process started
+- `DecryptionCompleted`: Order revealed
+- `DecryptionFailed`: Recovery needed
+- `RefundProcessed`: Funds returned to user
+- `AuditLog`: All critical operations
+
+**Recovery Procedures**:
+
+1. **Stuck Decryption Request**
+   ```javascript
+   // Check timeout
+   const isTimeout = await contract.isDecryptionTimeout(orderId);
+   if (isTimeout) {
+       await contract.handleDecryptionFailure(orderId);
+   }
+   ```
+
+2. **Failed Refund Transfer**
+   ```javascript
+   // User claims pending refund
+   const pending = await contract.getPendingRefund(userAddress);
+   if (pending > 0) {
+       await contract.claimPendingRefund();
+   }
+   ```
+
+3. **Emergency Withdrawal**
+   ```javascript
+   // Owner only - last resort
+   await contract.emergencyWithdraw();
+   ```
+
 ## ⚠️ Important Notes
 
 ### Development Status
 - ✅ Testnet deployment (Sepolia)
 - ✅ Full test coverage (95%+)
 - ✅ Security audit tools integrated
+- ✅ Enhanced with production-grade features
 - ⚠️ Not audited for mainnet production
 
 ### Operational Considerations
 - FHE operations require more gas than standard transactions
-- Decryption involves EIP-712 signatures
+- Gateway callbacks are asynchronous (plan for delays)
 - Sepolia testnet required for full functionality
-- Test thoroughly before any production use
+- Timeout windows (7-30 days) must be considered
+- All critical operations logged for compliance
 
 ### Known Limitations
 - FHE operations are computationally intensive
 - Higher gas costs than traditional contracts
 - Decryption requires off-chain oracle interaction
 - Limited to Sepolia testnet for now
+- Gateway may have response delays (plan accordingly)
 
 ## 🌐 Links & Resources
 
